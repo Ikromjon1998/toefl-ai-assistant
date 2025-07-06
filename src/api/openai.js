@@ -1,26 +1,29 @@
 export async function getEssayFeedback(essayText) {
   console.log('🔍 Starting essay feedback request...');
   console.log('📝 Essay length:', essayText.length, 'characters');
-  
+
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   console.log('🔑 API Key present:', !!apiKey);
   console.log('🔑 API Key starts with sk-:', apiKey?.startsWith('sk-'));
   console.log('🔑 API Key length:', apiKey?.length);
-  console.log('🔑 API Key preview:', apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined');
-  
+  console.log(
+    '🔑 API Key preview:',
+    apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined'
+  );
+
   try {
     console.log('📤 Making API request to OpenAI...');
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: 'gpt-3.5-turbo',
         messages: [
           {
-            role: "system",
+            role: 'system',
             content: `You are an expert TOEFL English tutor. Evaluate the following essay based on TOEFL writing criteria:
             - Organization and Development (0-5 points)
             - Language Use (0-5 points)
@@ -67,7 +70,7 @@ export async function getEssayFeedback(essayText) {
             Be encouraging but honest. Use **bold** for emphasis, bullet points for lists, and clear headings for organization.`,
           },
           {
-            role: "user",
+            role: 'user',
             content: `Please evaluate this TOEFL essay:\n\n${essayText}`,
           },
         ],
@@ -88,11 +91,11 @@ export async function getEssayFeedback(essayText) {
     const data = await response.json();
     console.log('✅ API Response received successfully');
     console.log('📊 Response data keys:', Object.keys(data));
-    
+
     return data.choices[0].message.content;
   } catch (error) {
-    console.error("❌ Error getting essay feedback:", error);
-    console.error("❌ Error message:", error.message);
+    console.error('❌ Error getting essay feedback:', error);
+    console.error('❌ Error message:', error.message);
     throw error;
   }
 }
@@ -100,26 +103,29 @@ export async function getEssayFeedback(essayText) {
 export async function generateReadingQuestions(passage) {
   console.log('🔍 Starting reading questions generation...');
   console.log('📖 Passage length:', passage.length, 'characters');
-  
+
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   console.log('🔑 API Key present:', !!apiKey);
   console.log('🔑 API Key starts with sk-:', apiKey?.startsWith('sk-'));
   console.log('🔑 API Key length:', apiKey?.length);
-  console.log('🔑 API Key preview:', apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined');
-  
+  console.log(
+    '🔑 API Key preview:',
+    apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined'
+  );
+
   try {
     console.log('📤 Making API request to OpenAI...');
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: 'gpt-3.5-turbo',
         messages: [
           {
-            role: "system",
+            role: 'system',
             content: `Generate 5 multiple-choice reading comprehension questions based on the given passage. 
             Format your response as a JSON object with this structure:
             {
@@ -141,7 +147,7 @@ export async function generateReadingQuestions(passage) {
             - Author's purpose`,
           },
           {
-            role: "user",
+            role: 'user',
             content: `Generate questions for this passage:\n\n${passage}`,
           },
         ],
@@ -162,22 +168,22 @@ export async function generateReadingQuestions(passage) {
     const data = await response.json();
     console.log('✅ API Response received successfully');
     console.log('📊 Response data keys:', Object.keys(data));
-    
+
     const content = data.choices[0].message.content;
     console.log('📄 Raw response content length:', content.length);
-    
+
     try {
       const parsed = JSON.parse(content);
       console.log('✅ JSON parsed successfully');
       return parsed;
     } catch (parseError) {
-      console.error("❌ Error parsing JSON response:", parseError);
-      console.error("❌ Raw content:", content);
-      throw new Error("Invalid response format from API");
+      console.error('❌ Error parsing JSON response:', parseError);
+      console.error('❌ Raw content:', content);
+      throw new Error('Invalid response format from API');
     }
   } catch (error) {
-    console.error("❌ Error generating reading questions:", error);
-    console.error("❌ Error message:", error.message);
+    console.error('❌ Error generating reading questions:', error);
+    console.error('❌ Error message:', error.message);
     throw error;
   }
 }
@@ -185,26 +191,29 @@ export async function generateReadingQuestions(passage) {
 export async function getVocabularyDefinition(word) {
   console.log('🔍 Starting vocabulary lookup...');
   console.log('📚 Word:', word);
-  
+
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   console.log('🔑 API Key present:', !!apiKey);
   console.log('🔑 API Key starts with sk-:', apiKey?.startsWith('sk-'));
   console.log('🔑 API Key length:', apiKey?.length);
-  console.log('🔑 API Key preview:', apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined');
-  
+  console.log(
+    '🔑 API Key preview:',
+    apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined'
+  );
+
   try {
     console.log('📤 Making API request to OpenAI...');
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: 'gpt-3.5-turbo',
         messages: [
           {
-            role: "system",
+            role: 'system',
             content: `Provide a comprehensive definition for the given word, suitable for TOEFL preparation. 
             Include:
             1. Definition
@@ -224,7 +233,7 @@ export async function getVocabularyDefinition(word) {
             }`,
           },
           {
-            role: "user",
+            role: 'user',
             content: `Define this word: ${word}`,
           },
         ],
@@ -245,22 +254,22 @@ export async function getVocabularyDefinition(word) {
     const data = await response.json();
     console.log('✅ API Response received successfully');
     console.log('📊 Response data keys:', Object.keys(data));
-    
+
     const content = data.choices[0].message.content;
     console.log('📄 Raw response content length:', content.length);
-    
+
     try {
       const parsed = JSON.parse(content);
       console.log('✅ JSON parsed successfully');
       return parsed;
     } catch (parseError) {
-      console.error("❌ Error parsing JSON response:", parseError);
-      console.error("❌ Raw content:", content);
-      throw new Error("Invalid response format from API");
+      console.error('❌ Error parsing JSON response:', parseError);
+      console.error('❌ Raw content:', content);
+      throw new Error('Invalid response format from API');
     }
   } catch (error) {
-    console.error("❌ Error getting vocabulary definition:", error);
-    console.error("❌ Error message:", error.message);
+    console.error('❌ Error getting vocabulary definition:', error);
+    console.error('❌ Error message:', error.message);
     throw error;
   }
-} 
+}
