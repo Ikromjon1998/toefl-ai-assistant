@@ -14,7 +14,7 @@ An AI-powered web application to help you prepare for the TOEFL exam, featuring 
 
 ### Prerequisites
 
-- Node.js (version 16 or higher)
+- Node.js (version 18 or higher)
 - OpenAI API key (optional, for AI features)
 
 ### Installation
