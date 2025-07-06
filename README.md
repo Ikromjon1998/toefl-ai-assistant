@@ -21,7 +21,7 @@ An AI-powered web application to help you prepare for the TOEFL exam, featuring 
 
 1. **Clone or download the project**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ikromjon1998/toefl-ai-assistant.git
    cd toefl-ai-assistant
    ```
 
