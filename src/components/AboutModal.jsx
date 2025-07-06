@@ -4,10 +4,6 @@ import { CREATOR_CONFIG, APP_CONFIG } from '../config/creator';
 const AboutModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
-  // Debug logging
-  console.log('CREATOR_CONFIG:', CREATOR_CONFIG);
-  console.log('APP_CONFIG:', APP_CONFIG);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -38,7 +34,7 @@ const AboutModal = ({ isOpen, onClose }) => {
                 <span className="font-medium text-gray-700">Version:</span> <span className="text-gray-600">{APP_CONFIG.version || 'Not set'}</span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Target Audience:</span> {APP_CONFIG.targetAudience}
+                <span className="font-medium text-gray-700">Target Audience:</span> <span className="text-gray-600">{APP_CONFIG.targetAudience}</span>
               </div>
             </div>
           </div>
@@ -70,12 +66,10 @@ const AboutModal = ({ isOpen, onClose }) => {
               
               <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div>
-                  <span className="font-medium text-gray-700">Location:</span> <span className="text-gray-600">{CREATOR_CONFIG.location || 'Not set'}</span>
-                  <span className="text-red-500 ml-2">(Debug: {JSON.stringify(CREATOR_CONFIG.location)})</span>
+                  <span className="font-medium text-gray-700">Location:</span> <span className="text-gray-600">{CREATOR_CONFIG.location}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Experience:</span> <span className="text-gray-600">{CREATOR_CONFIG.experience || 'Not set'}</span>
-                  <span className="text-red-500 ml-2">(Debug: {JSON.stringify(CREATOR_CONFIG.experience)})</span>
+                  <span className="font-medium text-gray-700">Experience:</span> <span className="text-gray-600">{CREATOR_CONFIG.experience}</span>
                 </div>
               </div>
 
@@ -101,12 +95,10 @@ const AboutModal = ({ isOpen, onClose }) => {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div>
-                  <span className="font-medium text-gray-700">Project Name:</span> <span className="text-gray-600">{CREATOR_CONFIG.project.name || 'Not set'}</span>
-                  <span className="text-red-500 ml-2">(Debug: {JSON.stringify(CREATOR_CONFIG.project.name)})</span>
+                  <span className="font-medium text-gray-700">Project Name:</span> <span className="text-gray-600">{CREATOR_CONFIG.project.name}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Version:</span> <span className="text-gray-600">{CREATOR_CONFIG.project.version || 'Not set'}</span>
-                  <span className="text-red-500 ml-2">(Debug: {JSON.stringify(CREATOR_CONFIG.project.version)})</span>
+                  <span className="font-medium text-gray-700">Version:</span> <span className="text-gray-600">{CREATOR_CONFIG.project.version}</span>
                 </div>
               </div>
               <p className="text-gray-600 mb-3">{CREATOR_CONFIG.project.description}</p>

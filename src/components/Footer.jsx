@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { CREATOR_CONFIG, APP_CONFIG, FOOTER_LINKS } from '../config/creator';
 import AboutModal from './AboutModal';
+import PrivacyModal from './PrivacyModal';
+import TermsModal from './TermsModal';
+import ContactModal from './ContactModal';
 
 const Footer = () => {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const currentYear = new Date().getFullYear();
 
   return (
@@ -115,7 +121,24 @@ const Footer = () => {
               {FOOTER_LINKS.legal.map((link) => (
                 <button
                   key={link.name}
-                  onClick={() => link.name === 'About' ? setIsAboutModalOpen(true) : null}
+                  onClick={() => {
+                    switch (link.name) {
+                      case 'About':
+                        setIsAboutModalOpen(true);
+                        break;
+                      case 'Privacy Policy':
+                        setIsPrivacyModalOpen(true);
+                        break;
+                      case 'Terms of Service':
+                        setIsTermsModalOpen(true);
+                        break;
+                      case 'Contact':
+                        setIsContactModalOpen(true);
+                        break;
+                      default:
+                        break;
+                    }
+                  }}
                   className="hover:text-blue-400 transition-colors duration-200"
                 >
                   {link.name}
@@ -126,10 +149,22 @@ const Footer = () => {
         </div>
       </div>
       
-      {/* About Modal */}
+      {/* Modals */}
       <AboutModal 
         isOpen={isAboutModalOpen} 
         onClose={() => setIsAboutModalOpen(false)} 
+      />
+      <PrivacyModal 
+        isOpen={isPrivacyModalOpen} 
+        onClose={() => setIsPrivacyModalOpen(false)} 
+      />
+      <TermsModal 
+        isOpen={isTermsModalOpen} 
+        onClose={() => setIsTermsModalOpen(false)} 
+      />
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
       />
     </footer>
   );
