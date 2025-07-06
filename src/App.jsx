@@ -1,34 +1,41 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Writing from './pages/Writing';
 import Reading from './pages/Reading';
 import Vocabulary from './pages/Vocabulary';
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+// Constants
+const PAGES = {
+  HOME: 'home',
+  WRITING: 'writing',
+  READING: 'reading',
+  VOCABULARY: 'vocabulary'
+};
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <Home onPageChange={setCurrentPage} />;
-      case 'writing':
-        return <Writing />;
-      case 'reading':
-        return <Reading />;
-      case 'vocabulary':
-        return <Vocabulary />;
-      default:
-        return <Home onPageChange={setCurrentPage} />;
-    }
+const PAGE_COMPONENTS = {
+  [PAGES.HOME]: Home,
+  [PAGES.WRITING]: Writing,
+  [PAGES.READING]: Reading,
+  [PAGES.VOCABULARY]: Vocabulary
+};
+
+function App() {
+  const [currentPage, setCurrentPage] = useState(PAGES.HOME);
+
+  const renderCurrentPage = () => {
+    const PageComponent = PAGE_COMPONENTS[currentPage];
+    return <PageComponent onPageChange={setCurrentPage} />;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header currentPage={currentPage} onPageChange={setCurrentPage} />
-      <main>
-        {renderPage()}
+      <main className="flex-1">
+        {renderCurrentPage()}
       </main>
+      <Footer />
     </div>
   );
 }

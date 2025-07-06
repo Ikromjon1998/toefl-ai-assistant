@@ -26,14 +26,45 @@ export async function getEssayFeedback(essayText) {
             - Language Use (0-5 points)
             - Grammar and Mechanics (0-5 points)
             
-            Provide specific feedback on:
-            1. Overall score (0-30 scale)
-            2. Strengths
-            3. Areas for improvement
-            4. Specific suggestions for grammar, vocabulary, and structure
-            5. Sample corrections for major errors
+            Provide specific feedback using markdown formatting with the following structure:
             
-            Be encouraging but honest. Format your response clearly with sections.`,
+            ## Overall Score: [X]/30
+            
+            ## Strengths
+            - [List key strengths with bullet points]
+            
+            ## Areas for Improvement
+            - [List areas that need work]
+            
+            ## Detailed Analysis
+            
+            ### Organization and Development
+            [Provide specific feedback on essay structure, thesis, and development]
+            
+            ### Language Use
+            [Comment on vocabulary, sentence variety, and language sophistication]
+            
+            ### Grammar and Mechanics
+            [Address grammar, punctuation, and spelling issues]
+            
+            ## Specific Suggestions
+            - [Actionable improvement suggestions]
+            
+            ## Sample Corrections
+            
+            **Example 1:**
+            Original: "Technology make life easier."
+            Correction: "Technology makes life easier."
+            
+            **Example 2:**
+            Original: "Some people like technology, some people don't like technology."
+            Correction: "While some people appreciate technology, others do not."
+            
+            **Example 3:**
+            Original: "Life is complicated, technology more complicated."
+            Correction: "Life has become more complicated, with technology adding further complexity."
+            
+            Be encouraging but honest. Use **bold** for emphasis, bullet points for lists, and clear headings for organization.`,
           },
           {
             role: "user",

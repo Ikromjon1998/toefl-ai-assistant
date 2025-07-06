@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
 import { generateReadingQuestions } from '../api/openai';
 
-const Reading = () => {
-  const [passage, setPassage] = useState('');
-  const [questions, setQuestions] = useState(null);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [showResults, setShowResults] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const samplePassages = [
+// Constants
+const SAMPLE_PASSAGES = [
     {
       title: "The Impact of Climate Change on Agriculture",
       content: `Climate change is having a profound impact on agricultural systems worldwide. Rising temperatures, changing precipitation patterns, and increased frequency of extreme weather events are all affecting crop yields and farming practices. Scientists predict that by 2050, global food production could decrease by 10-25% due to climate-related factors.
@@ -32,9 +25,329 @@ Despite these challenges, digital communication has also created opportunities f
     }
   ];
 
+// Utility functions
+const validatePassage = (passage) => {
+  if (!passage.trim()) {
+    return 'Please enter a passage before generating questions.';
+  }
+  return null;
+};
+
+const calculateScore = (questions, userAnswers) => {
+  if (!questions || !userAnswers) return 0;
+  
+  let correct = 0;
+  questions.questions.forEach((question, index) => {
+    if (userAnswers[index] === question.correctAnswer) {
+      correct++;
+    }
+  });
+  
+  return Math.round((correct / questions.questions.length) * 100);
+};
+
+// Sub-components
+const PageHeader = () => (
+  <div className="text-center mb-8">
+    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+      📖 TOEFL Reading Practice
+    </h1>
+    <p className="text-gray-600 max-w-2xl mx-auto">
+      Practice reading comprehension with AI-generated questions. Enter a passage or use our sample texts to get started.
+    </p>
+  </div>
+);
+
+const SamplePassageCard = ({ passage, index, onSelect }) => (
+  <div
+    className="p-3 bg-gray-50 rounded-md text-sm cursor-pointer hover:bg-gray-100 transition-colors"
+    onClick={() => onSelect(passage.content)}
+  >
+    <strong>{passage.title}</strong>
+    <p className="text-gray-600 mt-1">{passage.content.substring(0, 100)}...</p>
+  </div>
+);
+
+const SamplePassagesSection = ({ passages, onPassageSelect }) => (
+  <div className="mb-6">
+    <h3 className="font-medium text-gray-900 mb-3">Sample Passages:</h3>
+    <div className="space-y-2">
+      {passages.map((passage, index) => (
+        <SamplePassageCard
+          key={index}
+          passage={passage}
+          index={index}
+          onSelect={onPassageSelect}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+const PassageTextarea = ({ passage, onPassageChange, isLoading }) => (
+  <div className="mb-4">
+    <label htmlFor="passage" className="block text-sm font-medium text-gray-700 mb-2">
+      Or enter your own passage:
+    </label>
+    <textarea
+      id="passage"
+      value={passage}
+      onChange={onPassageChange}
+      className="input-field h-64 resize-none"
+      placeholder="Paste or type a reading passage here..."
+      disabled={isLoading}
+    />
+  </div>
+);
+
+const ErrorMessage = ({ error }) => (
+  error && (
+    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+      <p className="text-red-700 text-sm">{error}</p>
+    </div>
+  )
+);
+
+const LoadingSpinner = () => (
+  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+);
+
+const ActionButtons = ({ onGenerate, onReset, isLoading, isDisabled }) => (
+  <div className="flex gap-4">
+    <button
+      onClick={onGenerate}
+      disabled={isDisabled}
+      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+    >
+      {isLoading ? (
+        <span className="flex items-center justify-center">
+          <LoadingSpinner />
+          Generating...
+        </span>
+      ) : (
+        'Generate Questions'
+      )}
+    </button>
+    <button
+      onClick={onReset}
+      className="btn-secondary"
+      disabled={isLoading}
+    >
+      Reset
+    </button>
+  </div>
+);
+
+const PassageInputSection = ({ 
+  passage, 
+  onPassageChange, 
+  onGenerate, 
+  onReset, 
+  onPassageSelect, 
+  isLoading, 
+  error 
+}) => (
+  <div className="card">
+    <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      Reading Passage
+    </h2>
+
+    <SamplePassagesSection passages={SAMPLE_PASSAGES} onPassageSelect={onPassageSelect} />
+
+    <PassageTextarea
+      passage={passage}
+      onPassageChange={onPassageChange}
+      isLoading={isLoading}
+    />
+
+    <ErrorMessage error={error} />
+
+    <ActionButtons
+      onGenerate={onGenerate}
+      onReset={onReset}
+      isLoading={isLoading}
+      isDisabled={isLoading || !passage.trim()}
+    />
+  </div>
+);
+
+const QuestionOption = ({ option, optionIndex, questionIndex, userAnswer, onAnswerChange, showResults, correctAnswer }) => {
+  const isSelected = userAnswer === option;
+  const isCorrect = option === correctAnswer;
+  const showCorrectAnswer = showResults && isCorrect;
+  const showWrongAnswer = showResults && isSelected && !isCorrect;
+  
+  const getOptionClasses = () => {
+    let classes = 'flex items-center space-x-3 cursor-pointer';
+    
+    if (showResults) {
+      if (showCorrectAnswer) {
+        classes += ' text-green-700 bg-green-50';
+      } else if (showWrongAnswer) {
+        classes += ' text-red-700 bg-red-50';
+      }
+    }
+    
+    return classes;
+  };
+
+  return (
+    <label className={getOptionClasses()}>
+      <input
+        type="radio"
+        name={`question-${questionIndex}`}
+        value={option}
+        checked={isSelected}
+        onChange={() => onAnswerChange(questionIndex, option)}
+        disabled={showResults}
+        className="text-blue-600 focus:ring-blue-500"
+      />
+      <span className="text-sm">{option}</span>
+    </label>
+  );
+};
+
+const QuestionCard = ({ question, questionIndex, userAnswer, onAnswerChange, showResults }) => (
+  <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+    <h3 className="font-medium text-gray-900 mb-3">
+      Question {questionIndex + 1}: {question.question}
+    </h3>
+    
+    <div className="space-y-2">
+      {question.options.map((option, optionIndex) => (
+        <QuestionOption
+          key={optionIndex}
+          option={option}
+          optionIndex={optionIndex}
+          questionIndex={questionIndex}
+          userAnswer={userAnswer}
+          onAnswerChange={onAnswerChange}
+          showResults={showResults}
+          correctAnswer={question.correctAnswer}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+const QuestionsLoadingState = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+    <p className="text-gray-600">Generating questions...</p>
+  </div>
+);
+
+const ScoreDisplay = ({ score, totalQuestions, answeredQuestions }) => (
+  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <h3 className="text-lg font-semibold text-blue-900 mb-2">📊 Your Score</h3>
+    <div className="text-2xl font-bold text-blue-700 mb-2">{score}%</div>
+    <p className="text-blue-800 text-sm">
+      You answered {answeredQuestions} out of {totalQuestions} questions correctly.
+    </p>
+  </div>
+);
+
+const CheckAnswersButton = ({ onCheckAnswers, answeredQuestions, totalQuestions }) => (
+  <button
+    onClick={onCheckAnswers}
+    disabled={answeredQuestions < totalQuestions}
+    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed w-full mb-6"
+  >
+    Check Answers ({answeredQuestions}/{totalQuestions})
+  </button>
+);
+
+const QuestionsSection = ({ questions, userAnswers, onAnswerChange, showResults, onCheckAnswers }) => {
+  if (!questions) return null;
+
+  const answeredQuestions = Object.keys(userAnswers).length;
+  const totalQuestions = questions.questions.length;
+  const score = calculateScore(questions, userAnswers);
+
+  return (
+    <div>
+      {showResults && (
+        <ScoreDisplay 
+          score={score} 
+          totalQuestions={totalQuestions} 
+          answeredQuestions={answeredQuestions} 
+        />
+      )}
+      
+      {!showResults && (
+        <CheckAnswersButton
+          onCheckAnswers={onCheckAnswers}
+          answeredQuestions={answeredQuestions}
+          totalQuestions={totalQuestions}
+        />
+      )}
+
+      {questions.questions.map((question, index) => (
+        <QuestionCard
+          key={index}
+          question={question}
+          questionIndex={index}
+          userAnswer={userAnswers[index]}
+          onAnswerChange={onAnswerChange}
+          showResults={showResults}
+        />
+      ))}
+    </div>
+  );
+};
+
+const EmptyQuestionsState = () => (
+  <div className="text-center py-8 text-gray-500">
+    <div className="text-4xl mb-4">📖</div>
+    <p>Enter a passage and generate questions to start practicing.</p>
+  </div>
+);
+
+const QuestionsDisplay = ({ questions, userAnswers, onAnswerChange, showResults, onCheckAnswers, isLoading }) => (
+  <div className="card">
+    <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      Comprehension Questions
+    </h2>
+
+    {isLoading && <QuestionsLoadingState />}
+    {questions && !isLoading && (
+      <QuestionsSection
+        questions={questions}
+        userAnswers={userAnswers}
+        onAnswerChange={onAnswerChange}
+        showResults={showResults}
+        onCheckAnswers={onCheckAnswers}
+      />
+    )}
+    {!questions && !isLoading && <EmptyQuestionsState />}
+  </div>
+);
+
+const Reading = () => {
+  const [passage, setPassage] = useState('');
+  const [questions, setQuestions] = useState(null);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [showResults, setShowResults] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handlePassageChange = (e) => {
+    setPassage(e.target.value);
+    setError(''); // Clear error when user starts typing
+  };
+
+  const handlePassageSelect = (content) => {
+    setPassage(content);
+    setError('');
+  };
+
   const handleGenerateQuestions = async () => {
-    if (!passage.trim()) {
-      setError('Please enter a passage before generating questions.');
+    const validationError = validatePassage(passage);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -74,225 +387,29 @@ Despite these challenges, digital communication has also created opportunities f
     setError('');
   };
 
-  const getScore = () => {
-    if (!questions || !showResults) return 0;
-    let correct = 0;
-    questions.questions.forEach((q, index) => {
-      if (userAnswers[index] === q.correctAnswer) {
-        correct++;
-      }
-    });
-    return Math.round((correct / questions.questions.length) * 100);
-  };
-
-  const score = getScore();
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          📖 TOEFL Reading Practice
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Practice reading comprehension with AI-generated questions. Enter a passage or use our sample texts to get started.
-        </p>
-      </div>
+      <PageHeader />
 
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Passage Input */}
-        <div className="card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Reading Passage
-          </h2>
+        <PassageInputSection
+          passage={passage}
+          onPassageChange={handlePassageChange}
+          onGenerate={handleGenerateQuestions}
+          onReset={handleReset}
+          onPassageSelect={handlePassageSelect}
+          isLoading={isLoading}
+          error={error}
+        />
 
-          {/* Sample Passages */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Sample Passages:</h3>
-            <div className="space-y-2">
-              {samplePassages.map((sample, index) => (
-                <div
-                  key={index}
-                  className="p-3 bg-gray-50 rounded-md text-sm cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={() => setPassage(sample.content)}
-                >
-                  <strong>{sample.title}</strong>
-                  <p className="text-gray-600 mt-1">{sample.content.substring(0, 100)}...</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="passage" className="block text-sm font-medium text-gray-700 mb-2">
-              Or enter your own passage:
-            </label>
-            <textarea
-              id="passage"
-              value={passage}
-              onChange={(e) => setPassage(e.target.value)}
-              className="input-field h-64 resize-none"
-              placeholder="Paste or type a reading passage here..."
-              disabled={isLoading}
-            />
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            <button
-              onClick={handleGenerateQuestions}
-              disabled={isLoading || !passage.trim()}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex-1"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating...
-                </span>
-              ) : (
-                'Generate Questions'
-              )}
-            </button>
-            <button
-              onClick={handleReset}
-              className="btn-secondary"
-              disabled={isLoading}
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-
-        {/* Questions and Results */}
-        <div className="card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Comprehension Questions
-          </h2>
-
-          {isLoading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Generating questions...</p>
-            </div>
-          )}
-
-          {questions && !isLoading && (
-            <div>
-              <div className="mb-6">
-                {questions.questions.map((question, index) => (
-                  <div key={index} className="mb-6 p-4 border border-gray-200 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-3">
-                      Question {index + 1}: {question.question}
-                    </h3>
-                    
-                    <div className="space-y-2">
-                      {question.options.map((option, optionIndex) => (
-                        <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="radio"
-                            name={`question-${index}`}
-                            value={option}
-                            checked={userAnswers[index] === option}
-                            onChange={(e) => handleAnswerChange(index, e.target.value)}
-                            disabled={showResults}
-                            className="text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className={`text-sm ${
-                            showResults 
-                              ? option === question.correctAnswer 
-                                ? 'text-green-700 font-medium' 
-                                : userAnswers[index] === option && option !== question.correctAnswer
-                                ? 'text-red-700 font-medium'
-                                : 'text-gray-700'
-                              : 'text-gray-700'
-                          }`}>
-                            {option}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-
-                    {showResults && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-md">
-                        <p className="text-sm text-gray-700">
-                          <strong>Explanation:</strong> {question.explanation}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {showResults && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h3 className="font-semibold text-blue-900 mb-2">📊 Your Results</h3>
-                  <p className="text-blue-800">
-                    Score: <strong>{score}%</strong> ({questions.questions.filter((q, index) => userAnswers[index] === q.correctAnswer).length} out of {questions.questions.length} correct)
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                {!showResults ? (
-                  <button
-                    onClick={handleCheckAnswers}
-                    className="btn-primary flex-1"
-                  >
-                    Check Answers
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowResults(false)}
-                    className="btn-secondary flex-1"
-                  >
-                    Hide Results
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {!questions && !isLoading && (
-            <div className="text-center py-8 text-gray-500">
-              <div className="text-4xl mb-4">📖</div>
-              <p>Enter a passage and generate questions to start practicing.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Reading Tips */}
-      <div className="mt-12 bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          💡 TOEFL Reading Tips
-        </h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-900 mb-2">Reading Strategy</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Skim the passage first for main ideas</li>
-              <li>• Read questions before reading in detail</li>
-              <li>• Look for key words in questions</li>
-              <li>• Use context clues for vocabulary</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-900 mb-2">Question Types</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Main idea and supporting details</li>
-              <li>• Vocabulary in context</li>
-              <li>• Inference and implication</li>
-              <li>• Author's purpose and tone</li>
-            </ul>
-          </div>
-        </div>
+        <QuestionsDisplay
+          questions={questions}
+          userAnswers={userAnswers}
+          onAnswerChange={handleAnswerChange}
+          showResults={showResults}
+          onCheckAnswers={handleCheckAnswers}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );
