@@ -1,7 +1,35 @@
 import React from 'react';
 
+// Types
+interface NavigationItem {
+  readonly id: string;
+  readonly label: string;
+  readonly icon: string;
+}
+
+interface HeaderProps {
+  currentPage: string;
+  onPageChange: (pageId: string) => void;
+}
+
+interface NavigationButtonProps {
+  item: NavigationItem;
+  onClick: (id: string) => void;
+  className: string;
+}
+
+interface DesktopNavigationProps {
+  currentPage: string;
+  onPageChange: (pageId: string) => void;
+}
+
+interface MobileNavigationProps {
+  currentPage: string;
+  onPageChange: (pageId: string) => void;
+}
+
 // Constants
-const NAVIGATION_ITEMS = [
+const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   { id: 'home', label: '🏠 Home', icon: '🏠' },
   { id: 'writing', label: '✍️ Writing', icon: '✍️' },
   { id: 'reading', label: '📖 Reading', icon: '📖' },
@@ -11,7 +39,8 @@ const NAVIGATION_ITEMS = [
 const APP_TITLE = '📘 TOEFL AI Assistant';
 
 // Utility functions
-const getNavButtonClasses = isActive => {
+type GetNavButtonClasses = (isActive: boolean) => string;
+const getNavButtonClasses: GetNavButtonClasses = isActive => {
   const baseClasses =
     'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200';
   const activeClasses = 'bg-blue-100 text-blue-700';
@@ -20,7 +49,7 @@ const getNavButtonClasses = isActive => {
   return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
 };
 
-const getMobileNavButtonClasses = isActive => {
+const getMobileNavButtonClasses: GetNavButtonClasses = isActive => {
   const baseClasses =
     'block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200';
   const activeClasses = 'bg-blue-100 text-blue-700';
@@ -30,13 +59,13 @@ const getMobileNavButtonClasses = isActive => {
 };
 
 // Sub-components
-const NavigationButton = ({ item, onClick, className }) => (
-  <button key={item.id} onClick={() => onClick(item.id)} className={className}>
+const NavigationButton: React.FC<NavigationButtonProps> = ({ item, onClick, className }) => (
+  <button type="button" key={item.id} onClick={() => onClick(item.id)} className={className}>
     {item.label}
   </button>
 );
 
-const MobileMenuButton = () => (
+const MobileMenuButton: React.FC = () => (
   <button
     type='button'
     className='text-gray-600 hover:text-blue-600 focus:outline-none focus:text-blue-600'
@@ -58,7 +87,7 @@ const MobileMenuButton = () => (
   </button>
 );
 
-const DesktopNavigation = ({ currentPage, onPageChange }) => (
+const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ currentPage, onPageChange }) => (
   <nav className='hidden md:flex space-x-8'>
     {NAVIGATION_ITEMS.map(item => (
       <NavigationButton
@@ -71,7 +100,7 @@ const DesktopNavigation = ({ currentPage, onPageChange }) => (
   </nav>
 );
 
-const MobileNavigation = ({ currentPage, onPageChange }) => (
+const MobileNavigation: React.FC<MobileNavigationProps> = ({ currentPage, onPageChange }) => (
   <div className='md:hidden'>
     <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3'>
       {NAVIGATION_ITEMS.map(item => (
@@ -86,7 +115,7 @@ const MobileNavigation = ({ currentPage, onPageChange }) => (
   </div>
 );
 
-const Header = ({ currentPage, onPageChange }) => {
+const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => {
   return (
     <header className='bg-white shadow-sm border-b border-gray-200'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -114,4 +143,4 @@ const Header = ({ currentPage, onPageChange }) => {
   );
 };
 
-export default Header;
+export default Header; 
